@@ -3,6 +3,7 @@ package com.example.back_health_monitor.login;
 import java.io.IOException;
 import java.util.Optional;
 
+import com.example.back_health_monitor.exceptions.InvalidUserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,11 +26,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${token.secret}")
     private String secret;
 
-    @Autowired
-    private LoginService loginService;
+    private final LoginService loginService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public JwtAuthenticationFilter(LoginService loginService, UserRepository userRepository) {
+        this.loginService = loginService;
+        this.userRepository = userRepository;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -41,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = this.loginService.validateToken(token);
             Optional<User> optUser = this.userRepository.findByUsername(username);
             if (optUser.isEmpty()) {
-                throw new RuntimeException("User not valid.");
+                throw new InvalidUserException("Usuário inválido.");
             }
 
             if (username != null) {

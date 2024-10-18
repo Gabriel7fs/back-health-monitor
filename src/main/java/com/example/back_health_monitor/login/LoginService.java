@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
+import com.example.back_health_monitor.exceptions.InvalidCredentialsException;
+import com.example.back_health_monitor.exceptions.TokenGenerationException;
+import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,13 +34,13 @@ public class LoginService {
     public LoginDTO login(AuthDTO dto) {
         Optional<User> optUser = this.userRepository.findByCpf(dto.cpf());
         if (optUser.isEmpty()) {
-            throw new RuntimeException("User not found.");
+            throw new UserNotFoundException("Usuário não encontrado.");
         }
 
         User user = optUser.get();
         boolean isPasswordValid = this.passwordEncoder.matches(dto.password(), user.getPassword());
         if (!isPasswordValid) {
-            throw new RuntimeException("Invalid credentials.");
+            throw new InvalidCredentialsException("Credenciais inválidas.");
         }
 
         String token = this.generateToken(user);
@@ -51,7 +54,7 @@ public class LoginService {
             return JWT.create().withIssuer("auth-api").withSubject(user.getUsername())
                     .withExpiresAt(this.genExpirationDate()).sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating token", exception);
+            throw new TokenGenerationException("Error while generating token", exception);
         }
     }
 

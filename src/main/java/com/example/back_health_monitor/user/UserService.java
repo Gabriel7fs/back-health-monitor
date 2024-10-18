@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -13,10 +13,13 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    public UserService(UserRepository repository) {
+        this.repository = repository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     public void createUser(UserCreateDTO dto) {
         User user;
@@ -82,7 +85,7 @@ public class UserService {
     public void updateUser(UserCreateDTO dto) {
         Optional<User> optUser = this.repository.findById(dto.getId());
         if (optUser.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new UserNotFoundException("Usuário não encontrado.");
         }
 
         User user = optUser.get();
@@ -117,7 +120,7 @@ public class UserService {
     public void changePassword(UserCreateDTO dto) {
         Optional<User> optUser = this.repository.findById(dto.getId());
         if(optUser.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new UserNotFoundException("Usuário não encontrado.");
         }
 
         User user = optUser.get();

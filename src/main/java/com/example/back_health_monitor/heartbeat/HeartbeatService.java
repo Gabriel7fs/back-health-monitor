@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,19 +16,20 @@ import com.example.back_health_monitor.user.UserRepository;
 @Service
 public class HeartbeatService {
 
-    @Autowired
-    private HeartbeatRepository heartbeatRepository;
+    private final HeartbeatRepository heartbeatRepository;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    public HeartbeatService(HeartbeatRepository heartbeatRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
+        this.heartbeatRepository = heartbeatRepository;
+        this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
+    }
 
     public void generateHeartbeat(HeartbeatCreateDTO dto) {
         Optional<User> optUser = this.userRepository.findById(dto.getPacientId());
         if (optUser.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new UserNotFoundException("Usuário não encontrado.");
         }
 
         Heartbeat heartbeat = new Heartbeat();
@@ -48,7 +49,7 @@ public class HeartbeatService {
     public List<HeartbeatDTO> dashboard(Long userId) {
         Optional<User> optUser = this.userRepository.findById(userId);
         if (optUser.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado.");
+            throw new UserNotFoundException("Usuário não encontrado.");
         }
 
         return optUser.get().getAssociateds().stream().map(associated -> {

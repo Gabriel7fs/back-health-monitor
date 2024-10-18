@@ -31,7 +31,7 @@ public class User {
 
     private String address;
 
-    private Integer emergencyContact;
+    private Long emergencyContact;
 
     @Column(name = "username", unique = true)
     private String username;
@@ -53,7 +53,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Heartbeat> heartbeats = new ArrayList<>();
 
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<GrantedAuthority> getAuthorities() {
         if (this.type == UserType.MONITOR) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
         } else {

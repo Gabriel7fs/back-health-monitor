@@ -17,8 +17,12 @@ import com.example.back_health_monitor.heartbeat.HeartbeatService;
 @Controller
 @RequestMapping("/heartbeat")
 public class HeartbeatController {
-    @Autowired
-    private HeartbeatService heartbeatService;
+
+    private final HeartbeatService heartbeatService;
+
+    public HeartbeatController(HeartbeatService heartbeatService) {
+        this.heartbeatService = heartbeatService;
+    }
 
     @MessageMapping("/generate")
     public void generateHeartbeat(@RequestBody HeartbeatCreateDTO dto) {

@@ -19,11 +19,13 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository repository;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public UserController(UserRepository repository, UserService userService) {
+        this.repository = repository;
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<UserResponseDTO> getAll() {

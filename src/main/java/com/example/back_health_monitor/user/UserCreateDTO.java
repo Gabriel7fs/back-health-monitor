@@ -10,7 +10,7 @@ public class UserCreateDTO {
 
     private String cpf;
 
-    private Integer emergencyContact;
+    private Long emergencyContact;
 
     private String username;
 
