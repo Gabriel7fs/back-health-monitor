@@ -23,13 +23,16 @@ import com.example.back_health_monitor.user.UserRepository;
 @Service
 public class LoginService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${token.secret}")
     private String secret;
+
+    public LoginService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     public LoginDTO login(AuthDTO dto) {
         Optional<User> optUser = this.userRepository.findByCpf(dto.cpf());
