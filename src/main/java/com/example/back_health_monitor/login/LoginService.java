@@ -1,0 +1,70 @@
+package com.example.back_health_monitor.login;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.example.back_health_monitor.user.User;
+import com.example.back_health_monitor.user.UserRepository;
+
+@Service
+public class LoginService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Value("${token.secret}")
+    private String secret;
+
+    public LoginDTO login(AuthDTO dto) {
+        Optional<User> optUser = this.userRepository.findByCpf(dto.cpf());
+        if (optUser.isEmpty()) {
+            throw new RuntimeException("User not found.");
+        }
+
+        User user = optUser.get();
+        boolean isPasswordValid = this.passwordEncoder.matches(dto.password(), user.getPassword());
+        if (!isPasswordValid) {
+            throw new RuntimeException("Invalid credentials.");
+        }
+
+        String token = this.generateToken(user);
+
+        return new LoginDTO(token, optUser.get());
+    }
+
+    public String generateToken(User user) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.create().withIssuer("auth-api").withSubject(user.getUsername())
+                    .withExpiresAt(this.genExpirationDate()).sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Error while generating token", exception);
+        }
+    }
+
+    public String validateToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.require(algorithm).withIssuer("auth-api").build().verify(token).getSubject();
+        } catch (JWTVerificationException exception) {
+            return "";
+        }
+    }
+
+    private Instant genExpirationDate() {
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+}
