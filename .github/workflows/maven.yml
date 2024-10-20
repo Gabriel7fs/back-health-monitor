@@ -26,9 +26,9 @@ jobs:
       db:
         image: postgres:13
         env:
-          POSTGRES_DB: {{ secrets.DBPOSTGRE }}
-          POSTGRES_USER: {{ secrets.DBPOSTGRE_USERNAME }}
-          POSTGRES_PASSWORD: {{ secrets.DBPOSTGRE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DBPOSTGRE }}
+          POSTGRES_USER: ${{ secrets.DBPOSTGRE_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DBPOSTGRE_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
