@@ -26,9 +26,9 @@ jobs:
       db:
         image: postgres:13
         env:
-          POSTGRES_DB: ${{ secrets.DBPOSTGRE }}
-          POSTGRES_USER: ${{ secrets.DBPOSTGRE_USERNAME }}
-          POSTGRES_PASSWORD: ${{ secrets.DBPOSTGRE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DATABASE }}
+          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -78,3 +78,16 @@ jobs:
 
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/back-health-monitor
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from Docker Hub
+        run: sudo docker pull ${{ secrets.DOCKER_USERNAME }}/back-health-monitor:latest
+
+      - name: Remove existing Docker container
+        run: sudo docker rm -f my-java-app || true
+
+      - name: Run Docker container
+        run: sudo docker run -d -p 8080:8080 -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' -e DATABASE_URL=${{ secrets.DATABASE_URL }} --name back-health-monitor ${{ secrets.DOCKER_USERNAME }}/back-health-monitor:latest
