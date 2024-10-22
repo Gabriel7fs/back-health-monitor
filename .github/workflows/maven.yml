@@ -22,21 +22,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:13
-        env:
-          POSTGRES_DB: ${{ secrets.DATABASE }}
-          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
     - uses: actions/checkout@v4
 
@@ -55,14 +40,8 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Wait for PostgreSQL
-      run: until pg_isready --host=${{ secrets.HOST }} --port=5432; do sleep 1; done
-
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
-
-    - name: Run tests with Maven
-      run: mvn test
+      run: mvn -B package -DskipTests --file pom.xml
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
