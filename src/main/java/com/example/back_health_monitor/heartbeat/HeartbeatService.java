@@ -52,7 +52,7 @@ public class HeartbeatService {
         }
 
         List<User> associateds = optUser.get().getAssociateds();
-        List<HeartbeatDTO> hearts = associateds.stream().map(associated -> {
+        return associateds.stream().map(associated -> {
             UserDTO user = new UserDTO();
             user.setId(associated.getId());
             user.setName(associated.getUsername());
@@ -72,7 +72,5 @@ public class HeartbeatService {
 
             return heartDTO;
         }).toList();
-
-        return hearts;
     }
 }

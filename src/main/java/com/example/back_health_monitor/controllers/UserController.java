@@ -52,7 +52,7 @@ public class UserController {
             return this.heartbeatService.dashboard(userId);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return List.of();
         }
     }
 }
