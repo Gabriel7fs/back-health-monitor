@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HeartbeatInfoDTO {
+
     private float oxygenQuantity;
 
     private float heartbeat;

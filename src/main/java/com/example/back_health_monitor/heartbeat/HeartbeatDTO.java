@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HeartbeatDTO {
+
     private UserDTO user;
 
     private List<HeartbeatInfoDTO> heartbeats;
+
 }

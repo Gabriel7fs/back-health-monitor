@@ -1,5 +1,6 @@
 package com.example.back_health_monitor.login;
 
+import com.example.back_health_monitor.user.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,6 +10,6 @@ public class LoginDTO {
 
     private String token;
 
-    private Object user;
+    private UserDTO user;
 
 }

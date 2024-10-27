@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.example.back_health_monitor.exceptions.InvalidCredentialsException;
 import com.example.back_health_monitor.exceptions.TokenGenerationException;
 import com.example.back_health_monitor.exceptions.UserNotFoundException;
+import com.example.back_health_monitor.user.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,8 +48,9 @@ public class LoginService {
         }
 
         String token = this.generateToken(user);
+        UserDTO userDTO = new UserDTO(optUser.get());
 
-        return new LoginDTO(token, optUser.get());
+        return new LoginDTO(token, userDTO);
     }
 
     public String generateToken(User user) {

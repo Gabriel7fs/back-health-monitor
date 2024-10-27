@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -48,6 +49,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "associated_id")
     )
+    @JsonIgnore
     private List<User> associateds = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -76,4 +78,18 @@ public class User {
     public boolean isEnabled() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", cpf='" + cpf + '\'' +
+                ", username='" + username + '\'' +
+                ", address='" + address + '\'' +
+                ", emergencyContact=" + emergencyContact +
+                ", birthDate=" + birthDate +
+                ", type=" + type +
+                '}';
+    }
+
 }
