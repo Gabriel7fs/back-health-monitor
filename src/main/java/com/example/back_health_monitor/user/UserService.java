@@ -118,7 +118,7 @@ public class UserService {
     }
 
     public void changePassword(UserCreateDTO dto) {
-        Optional<User> optUser = this.repository.findById(dto.getId());
+        Optional<User> optUser = this.repository.findByCpf(dto.getCpf());
         if(optUser.isEmpty()) {
             throw new UserNotFoundException("Usuário não encontrado.");
         }

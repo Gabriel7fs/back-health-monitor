@@ -1,19 +1,15 @@
 package com.example.back_health_monitor.controllers;
 
-import java.util.List;
-
+import com.example.back_health_monitor.heartbeat.HeartbeatCreateDTO;
+import com.example.back_health_monitor.heartbeat.HeartbeatService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.example.back_health_monitor.heartbeat.HeartbeatCreateDTO;
-import com.example.back_health_monitor.heartbeat.HeartbeatDTO;
-import com.example.back_health_monitor.heartbeat.HeartbeatService;
-
-@Controller
+@RestController
 @RequestMapping("/heartbeat")
 public class HeartbeatController {
 
@@ -23,13 +19,9 @@ public class HeartbeatController {
         this.heartbeatService = heartbeatService;
     }
 
-    @MessageMapping("/generate")
+    @PostMapping("/generate")
     public void generateHeartbeat(@RequestBody HeartbeatCreateDTO dto) {
         this.heartbeatService.generateHeartbeat(dto);
     }
 
-    @GetMapping("/dashboard")
-    public List<HeartbeatDTO> dashboard(@RequestParam("userId") Long userId) {
-        return this.heartbeatService.dashboard(userId);
-    }
 }

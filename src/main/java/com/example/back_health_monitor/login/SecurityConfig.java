@@ -22,22 +22,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors().and()
-                .csrf().disable()
-                .authorizeRequests()
-                .requestMatchers("/auth/login").permitAll()
-                .requestMatchers("/user").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/ws", "/ws/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/ws", "/ws/**" ).permitAll()
-                .requestMatchers("/heartbeat/dashboard/**").hasAnyRole("MONITOR")
-                .anyRequest().authenticated()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+        return http.csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/user/change-password").permitAll()
+                        .requestMatchers("/user").permitAll()
+                        .requestMatchers("/ws", "/ws/**").permitAll()
+                        .requestMatchers( "/ws", "/ws/**" ).permitAll()
+                        .requestMatchers("/user/dashboard/**").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 
     @Bean

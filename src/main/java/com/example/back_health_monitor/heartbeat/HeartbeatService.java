@@ -45,14 +45,14 @@ public class HeartbeatService {
         this.messagingTemplate.convertAndSend("/topic/messages", dash);
     }
 
-    @Transactional
     public List<HeartbeatDTO> dashboard(Long userId) {
         Optional<User> optUser = this.userRepository.findById(userId);
         if (optUser.isEmpty()) {
             throw new UserNotFoundException("Usuário não encontrado.");
         }
 
-        return optUser.get().getAssociateds().stream().map(associated -> {
+        List<User> associateds = optUser.get().getAssociateds();
+        List<HeartbeatDTO> hearts = associateds.stream().map(associated -> {
             UserDTO user = new UserDTO();
             user.setId(associated.getId());
             user.setName(associated.getUsername());
@@ -72,5 +72,7 @@ public class HeartbeatService {
 
             return heartDTO;
         }).toList();
+
+        return hearts;
     }
 }
