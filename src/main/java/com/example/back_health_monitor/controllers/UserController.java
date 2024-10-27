@@ -48,11 +48,6 @@ public class UserController {
 
     @GetMapping(path = "/dashboard", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<HeartbeatDTO> dashboard(@RequestParam("userId") Long userId) {
-        try {
-            return this.heartbeatService.dashboard(userId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of();
-        }
+        return this.heartbeatService.dashboard(userId);
     }
 }
