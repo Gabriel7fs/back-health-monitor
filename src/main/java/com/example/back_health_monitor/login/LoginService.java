@@ -9,7 +9,6 @@ import com.example.back_health_monitor.exceptions.InvalidCredentialsException;
 import com.example.back_health_monitor.exceptions.TokenGenerationException;
 import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import com.example.back_health_monitor.user.UserDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

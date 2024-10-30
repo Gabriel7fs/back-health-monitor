@@ -10,6 +10,6 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customAPI() {
-        return new OpenAPI().info(new Info().title("Swagger API").version("1.0.0"));
+        return new OpenAPI().info(new Info().title("Documentação API Health Monitor").version("1.0.0"));
     }
 }
