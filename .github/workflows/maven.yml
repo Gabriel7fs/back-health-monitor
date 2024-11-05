@@ -69,4 +69,4 @@ jobs:
         run: docker rm -f back-health-monitor || true
 
       - name: Run Docker container
-        run: docker run -d -p 8080:8080 -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' -e DATABASE_URL=${{ secrets.DATABASE_URL }} --name back-health-monitor ${{ secrets.DOCKER_USERNAME }}/back-health-monitor:latest
+        run: docker run -d -p 8080:8080 -e DATABASE_USERNAME=${{ secrets.DATABASE_USER }} -e DATABASE_PASSWORD='${{ secrets.DATABASE_PASSWORD }}' -e DATABASE_URL=${{ secrets.DATABASE_URL }} --name back-health-monitor ${{ secrets.DOCKER_USERNAME }}/back-health-monitor:latest
