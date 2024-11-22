@@ -1,13 +1,13 @@
 package com.example.back_health_monitor.heartbeat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.back_health_monitor.user.User;
 import com.example.back_health_monitor.user.UserDTO;
@@ -40,9 +40,24 @@ public class HeartbeatService {
 
         this.heartbeatRepository.save(heartbeat);
 
-        List<HeartbeatDTO> dash = this.dashboard(dto.getPacientId());
+        List<User> cpfUsersAssociateds = this.getCpfUsersAssociateds(dto.getPacientId());
 
-        this.messagingTemplate.convertAndSend("/topic/messages", dash);
+        List<HeartbeatDTO> dashPacient = this.dashboard(dto.getPacientId());
+        this.messagingTemplate.convertAndSend("/topic/messages/" + dto.getCpf(), dashPacient);
+
+        cpfUsersAssociateds.forEach(cpf -> {
+            List<HeartbeatDTO> dash = this.dashboard(cpf.getId());
+            this.messagingTemplate.convertAndSend("/topic/messages/" + cpf.getCpf(), dash);
+        });
+    }
+
+    public List<User> getCpfUsersAssociateds(Long userId) {
+        Optional<User> optUser = this.userRepository.findById(userId);
+        if (optUser.isEmpty()) {
+            throw new UserNotFoundException("Usuário não encontrado.");
+        }
+
+        return optUser.get().getAssociateds();
     }
 
     public List<HeartbeatDTO> dashboard(Long userId) {

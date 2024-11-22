@@ -4,7 +4,9 @@ import lombok.Data;
 
 @Data
 public class HeartbeatCreateDTO {
-    
+
+    private String cpf;
+
     private Long pacientId;
 
     private float heartbeat;

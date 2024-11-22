@@ -18,6 +18,8 @@ public class UserDTO {
 
     private String cpf;
 
+
+
     private String address;
 
     private Long emergencyContact;
