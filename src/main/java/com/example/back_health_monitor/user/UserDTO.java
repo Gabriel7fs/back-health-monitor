@@ -1,6 +1,5 @@
 package com.example.back_health_monitor.user;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,8 +16,6 @@ public class UserDTO {
     private String name;
 
     private String cpf;
-
-
 
     private String address;
 
