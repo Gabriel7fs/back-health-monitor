@@ -10,10 +10,11 @@ import com.example.back_health_monitor.user.UserType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -21,8 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(AuthController.class)
 class AuthControllerTest {
 
     @Autowired
@@ -38,18 +38,19 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        AuthDTO authDTO = new AuthDTO("12345678901", "password");
-
+        // Configuração de objetos simulados
         UserDTO userDTO = new UserDTO(1L, "testUser", "12345678901", "testAddress", 123456789L, null, null, UserType.PACIENT);
         loginDTO = new LoginDTO("testToken", userDTO);
     }
 
     @Test
+    @WithMockUser
     void login_ShouldReturnLoginDTO_WhenCredentialsAreValid() throws Exception {
         when(loginService.login(any(AuthDTO.class))).thenReturn(loginDTO);
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()) // Adiciona CSRF
                         .content("{ \"cpf\": \"12345678901\", \"password\": \"password\" }"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -58,11 +59,13 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockUser // Simula um usuário autenticado
     void login_ShouldReturnUnauthorized_WhenCredentialsAreInvalid() throws Exception {
         when(loginService.login(any(AuthDTO.class))).thenThrow(new InvalidCredentialsException("Credenciais inválidas."));
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()) // Adiciona CSRF
                         .content("{ \"cpf\": \"12345678901\", \"password\": \"wrongPassword\" }"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Credenciais inválidas."));
