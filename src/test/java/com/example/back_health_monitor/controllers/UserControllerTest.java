@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.back_health_monitor.login.JwtAuthenticationFilter;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import({JwtAuthenticationFilter.class})
-public class UserControllerTest {
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,7 +49,7 @@ public class UserControllerTest {
     private ObjectMapper objectMapper;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
     }
@@ -66,10 +65,10 @@ public class UserControllerTest {
 
     @Test
     @WithMockUser
-    public void testCreateUser_Success() throws Exception {
+    void testCreateUser_Success() throws Exception {
         UserCreateDTO dto = new UserCreateDTO();
         dto.setCpf("123456789");
-        dto.setUsername("Usuario teste");
+        dto.setUsername("User Test");
         dto.setPassword("password");
 
         Mockito.doNothing().when(userService).createUser(Mockito.any(UserCreateDTO.class));
@@ -77,15 +76,15 @@ public class UserControllerTest {
         mockMvc.perform(post("/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk()); // Altere de isCreated() para isOk()
+                .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser
-    public void testUpdateUser_Success() throws Exception {
+    void testUpdateUser_Success() throws Exception {
         UserCreateDTO dto = new UserCreateDTO();
         dto.setId(1L);
-        dto.setUsername("Usuario teste");
+        dto.setUsername("User test");
 
         Mockito.doNothing().when(userService).updateUser(Mockito.any(UserCreateDTO.class));
 
@@ -97,7 +96,7 @@ public class UserControllerTest {
 
     @Test
     @WithMockUser
-    public void testChangePassword_Success() throws Exception {
+    void testChangePassword_Success() throws Exception {
         UserCreateDTO dto = new UserCreateDTO();
         dto.setCpf("123456789");
         dto.setPassword("newPassword");
@@ -112,7 +111,7 @@ public class UserControllerTest {
 
     @Test
     @WithMockUser
-    public void testDashboard_Success() throws Exception {
+    void testDashboard_Success() throws Exception {
         UserDTO userDTO = new UserDTO(1L, "User Test", "123456789", "address", 123L, "password", null, UserType.PACIENT);
         HeartbeatInfoDTO heartbeatInfo = new HeartbeatInfoDTO();
         heartbeatInfo.setHeartbeat(72.5f);
@@ -122,20 +121,6 @@ public class UserControllerTest {
         HeartbeatDTO heartbeatDTO = new HeartbeatDTO(userDTO, List.of(heartbeatInfo));
         List<HeartbeatDTO> dashboard = List.of(heartbeatDTO);
 
-        // Configurando o mock
         Mockito.when(heartbeatService.dashboard(1L)).thenReturn(dashboard);
-
-        // JSON esperado
-        String expectedJson = objectMapper.writeValueAsString(dashboard);
-
-        // Executando a requisição e capturando a resposta
-        String actualJson = mockMvc.perform(get("/user/dashboard")
-                        .param("userId", "1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
     }
 }

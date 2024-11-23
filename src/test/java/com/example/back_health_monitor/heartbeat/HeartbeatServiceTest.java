@@ -100,12 +100,17 @@ class HeartbeatServiceTest {
         verify(userRepository, times(1)).findById(testUser.getId());
     }
 
+    private void executeDashboardForUser(Long userId) {
+        heartbeatService.dashboard(userId);
+    }
+
     @Test
     void dashboard_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
         when(userRepository.findById(testUser.getId())).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> heartbeatService.dashboard(testUser.getId()));
+        assertThrows(UserNotFoundException.class, () -> executeDashboardForUser(testUser.getId()));
 
         verify(userRepository, times(1)).findById(testUser.getId());
     }
+
 }

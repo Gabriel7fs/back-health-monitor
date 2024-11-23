@@ -1,7 +1,6 @@
 package com.example.back_health_monitor.heartbeat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +19,8 @@ public class HeartbeatService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    private static final String USER_NOT_FOUND_MESSAGE = "Usuário não encontrado.";
+
     public HeartbeatService(HeartbeatRepository heartbeatRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
         this.heartbeatRepository = heartbeatRepository;
         this.userRepository = userRepository;
@@ -29,7 +30,7 @@ public class HeartbeatService {
     public void generateHeartbeat(HeartbeatCreateDTO dto) {
         Optional<User> optUser = this.userRepository.findById(dto.getPacientId());
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("Usuário não encontrado.");
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
 
         Heartbeat heartbeat = new Heartbeat();
@@ -54,7 +55,7 @@ public class HeartbeatService {
     public List<User> getCpfUsersAssociateds(Long userId) {
         Optional<User> optUser = this.userRepository.findById(userId);
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("Usuário não encontrado.");
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
 
         return optUser.get().getAssociateds();
@@ -63,7 +64,7 @@ public class HeartbeatService {
     public List<HeartbeatDTO> dashboard(Long userId) {
         Optional<User> optUser = this.userRepository.findById(userId);
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("Usuário não encontrado.");
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
 
         List<User> associateds = optUser.get().getAssociateds();

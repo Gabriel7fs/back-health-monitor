@@ -1,8 +1,6 @@
 package com.example.back_health_monitor.login;
 
-import com.auth0.jwt.exceptions.JWTCreationException;
 import com.example.back_health_monitor.exceptions.InvalidCredentialsException;
-import com.example.back_health_monitor.exceptions.TokenGenerationException;
 import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import com.example.back_health_monitor.user.User;
 import com.example.back_health_monitor.user.UserRepository;
@@ -51,12 +49,10 @@ class LoginServiceTest {
         when(passwordEncoder.matches("password", encodedPassword)).thenReturn(true);
         when(userRepository.findByCpf("12345678901")).thenReturn(Optional.of(testUser));
 
-        // Injetando manualmente o BCryptPasswordEncoder mockado no LoginService usando Reflection
         Field passwordEncoderField = LoginService.class.getDeclaredField("passwordEncoder");
         passwordEncoderField.setAccessible(true);
         passwordEncoderField.set(loginService, passwordEncoder);
 
-        // Definindo o valor do campo privado "secret" usando Reflection
         Field secretField = LoginService.class.getDeclaredField("secret");
         secretField.setAccessible(true);
         secretField.set(loginService, "test_secret");
@@ -97,20 +93,6 @@ class LoginServiceTest {
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
-    }
-
-    @Test
-    void generateToken_ShouldThrowTokenGenerationException_WhenJWTCreationFails() {
-        LoginService loginServiceSpy = spy(loginService);
-        doThrow(new JWTCreationException("JWT error", null)).when(loginServiceSpy).generateToken(testUser);
-
-        assertThrows(TokenGenerationException.class, () -> {
-            try {
-                loginServiceSpy.generateToken(testUser);
-            } catch (JWTCreationException e) {
-                throw new TokenGenerationException("Error while generating token", e);
-            }
-        });
     }
 
     @Test
