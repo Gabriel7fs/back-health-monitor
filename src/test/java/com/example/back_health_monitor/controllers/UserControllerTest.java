@@ -122,5 +122,11 @@ class UserControllerTest {
         List<HeartbeatDTO> dashboard = List.of(heartbeatDTO);
 
         Mockito.when(heartbeatService.dashboard(1L)).thenReturn(dashboard);
+
+        mockMvc.perform(get("/user/dashboard")
+                        .param("userId", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }
