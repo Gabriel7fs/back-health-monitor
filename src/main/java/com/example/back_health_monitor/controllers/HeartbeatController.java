@@ -9,28 +9,26 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/heartbeat")
+@Controller
+@AllArgsConstructor
 public class HeartbeatController {
 
     private final HeartbeatService heartbeatService;
 
-    public HeartbeatController(HeartbeatService heartbeatService) {
-        this.heartbeatService = heartbeatService;
-    }
-
     @Operation(summary = "Gera dados de batimentos cardíacos", description = "Endpoint para gerar informações de frequência cardíaca e nível de oxigênio para um paciente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dados de batimentos cardíacos gerados com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Requisição inválida", content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"Dados inválidos\" }")))
+            @ApiResponse(responseCode = "400", description = "Requisição inválida", content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"Dados inválidos\" }"))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"Usuário não encontrado.\" }")))
     })
-    @PostMapping("/generate")
-    public void generateHeartbeat(@RequestBody HeartbeatCreateDTO dto) {
+    @MessageMapping("/chat/{roomId}")
+    public void generateHeartbeat(@DestinationVariable String roomId, @RequestBody HeartbeatCreateDTO dto) {
         this.heartbeatService.generateHeartbeat(dto);
     }
 

@@ -7,7 +7,6 @@ import java.util.Optional;
 import com.example.back_health_monitor.exceptions.UserNotFoundException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.back_health_monitor.user.User;
 import com.example.back_health_monitor.user.UserDTO;
@@ -20,6 +19,8 @@ public class HeartbeatService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    private static final String USER_NOT_FOUND_MESSAGE = "Usuário não encontrado.";
+
     public HeartbeatService(HeartbeatRepository heartbeatRepository, UserRepository userRepository, SimpMessagingTemplate messagingTemplate) {
         this.heartbeatRepository = heartbeatRepository;
         this.userRepository = userRepository;
@@ -29,7 +30,7 @@ public class HeartbeatService {
     public void generateHeartbeat(HeartbeatCreateDTO dto) {
         Optional<User> optUser = this.userRepository.findById(dto.getPacientId());
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("Usuário não encontrado.");
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
 
         Heartbeat heartbeat = new Heartbeat();
@@ -40,15 +41,30 @@ public class HeartbeatService {
 
         this.heartbeatRepository.save(heartbeat);
 
-        List<HeartbeatDTO> dash = this.dashboard(dto.getPacientId());
+        List<User> cpfUsersAssociateds = this.getCpfUsersAssociateds(dto.getPacientId());
 
-        this.messagingTemplate.convertAndSend("/topic/messages", dash);
+        List<HeartbeatDTO> dashPacient = this.dashboard(dto.getPacientId());
+        this.messagingTemplate.convertAndSend("/topic/messages/" + dto.getCpf(), dashPacient);
+
+        cpfUsersAssociateds.forEach(cpf -> {
+            List<HeartbeatDTO> dash = this.dashboard(cpf.getId());
+            this.messagingTemplate.convertAndSend("/topic/messages/" + cpf.getCpf(), dash);
+        });
+    }
+
+    public List<User> getCpfUsersAssociateds(Long userId) {
+        Optional<User> optUser = this.userRepository.findById(userId);
+        if (optUser.isEmpty()) {
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
+        }
+
+        return optUser.get().getAssociateds();
     }
 
     public List<HeartbeatDTO> dashboard(Long userId) {
         Optional<User> optUser = this.userRepository.findById(userId);
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("Usuário não encontrado.");
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
 
         List<User> associateds = optUser.get().getAssociateds();
