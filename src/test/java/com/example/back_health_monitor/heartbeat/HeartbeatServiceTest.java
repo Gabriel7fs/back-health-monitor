@@ -86,22 +86,40 @@ class HeartbeatServiceTest {
         associatedUser.setUsername("associatedUser");
 
         Heartbeat heartbeat = new Heartbeat();
-        heartbeat.setHeartbeat(75.5f);
-        heartbeat.setOxygenQuantity(98.0f);
+        heartbeat.setHeartbeat(80.0f);
+        heartbeat.setOxygenQuantity(96.0f);
         heartbeat.setDate(LocalDateTime.now());
 
         associatedUser.setHeartbeats(List.of(heartbeat));
         testUser.setAssociateds(List.of(associatedUser));
 
-        List<HeartbeatDTO> result = heartbeatService.dashboard(testUser.getId());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        List<HeartbeatDTO> result = heartbeatService.dashboard(1L);
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(1, result.get(0).getHeartbeats().size());
         assertEquals("associatedUser", result.get(0).getUser().getName());
+        assertEquals(80.0f, result.get(0).getHeartbeats().get(0).getHeartbeat());
+        assertEquals(96.0f, result.get(0).getHeartbeats().get(0).getOxygenQuantity());
 
-        verify(userRepository, times(1)).findById(testUser.getId());
+        verify(userRepository, times(1)).findById(1L);
     }
+
+    @Test
+    void dashboard_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            heartbeatService.dashboard(1L);
+        });
+
+        assertEquals("Usuário não encontrado.", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(1L);
+    }
+
 
     @Test
     void generateHeartbeat_ShouldSendMessagesToAssociatedUsers_WhenAssociatedUsersExist() {
@@ -120,7 +138,7 @@ class HeartbeatServiceTest {
         heartbeatService.generateHeartbeat(heartbeatCreateDTO);
 
         verify(messagingTemplate, times(1))
-                .convertAndSend(eq("/topic/messages/98765432100"), eq(associatedDash));
+                .convertAndSend("/topic/messages/98765432100", associatedDash);
     }
 
     @Test
