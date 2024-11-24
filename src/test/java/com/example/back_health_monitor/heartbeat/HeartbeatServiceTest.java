@@ -54,7 +54,10 @@ class HeartbeatServiceTest {
         heartbeatCreateDTO.setOxygenQuantity(98.0f);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        heartbeatService = spy(new HeartbeatService(heartbeatRepository, userRepository, messagingTemplate));
     }
+
 
     @Test
     void generateHeartbeat_ShouldSaveHeartbeatAndSendMessage_WhenUserExists() {
@@ -100,4 +103,55 @@ class HeartbeatServiceTest {
         verify(userRepository, times(1)).findById(testUser.getId());
     }
 
+    @Test
+    void generateHeartbeat_ShouldSendMessagesToAssociatedUsers_WhenAssociatedUsersExist() {
+        User associatedUser = new User();
+        associatedUser.setId(2L);
+        associatedUser.setUsername("associatedUser");
+        associatedUser.setCpf("98765432100");
+
+        testUser.setAssociateds(List.of(associatedUser));
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(associatedUser));
+
+        List<HeartbeatDTO> associatedDash = List.of(new HeartbeatDTO());
+        doReturn(associatedDash).when(heartbeatService).dashboard(2L);
+
+        heartbeatService.generateHeartbeat(heartbeatCreateDTO);
+
+        verify(messagingTemplate, times(1))
+                .convertAndSend(eq("/topic/messages/98765432100"), eq(associatedDash));
+    }
+
+    @Test
+    void getCpfUsersAssociateds_ShouldReturnAssociatedUsers_WhenUserExists() {
+        User associatedUser = new User();
+        associatedUser.setId(2L);
+        associatedUser.setUsername("associatedUser");
+
+        testUser.setAssociateds(List.of(associatedUser));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        List<User> result = heartbeatService.getCpfUsersAssociateds(1L);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("associatedUser", result.get(0).getUsername());
+
+        verify(userRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void getCpfUsersAssociateds_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            heartbeatService.getCpfUsersAssociateds(1L);
+        });
+
+        assertEquals("Usuário não encontrado.", exception.getMessage());
+
+        verify(userRepository, times(1)).findById(1L);
+    }
 }
