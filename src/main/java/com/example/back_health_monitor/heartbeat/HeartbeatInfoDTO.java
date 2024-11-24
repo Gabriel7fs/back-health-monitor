@@ -16,4 +16,7 @@ public class HeartbeatInfoDTO {
     private float heartbeat;
 
     private LocalDateTime date;
+
+    public HeartbeatInfoDTO(float oxygenQuantity, float heartbeat, String s) {
+    }
 }
