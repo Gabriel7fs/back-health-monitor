@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class HeartbeatController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"Usuário não encontrado.\" }")))
     })
     @MessageMapping("/chat/{roomId}")
-    public void generateHeartbeat(@DestinationVariable String roomId, @RequestBody HeartbeatCreateDTO dto) {
+    public void generateHeartbeat(@DestinationVariable String roomId, @Payload HeartbeatCreateDTO dto) {
         this.heartbeatService.generateHeartbeat(dto);
     }
 

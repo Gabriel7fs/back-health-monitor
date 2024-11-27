@@ -28,7 +28,7 @@ public class HeartbeatService {
     }
 
     public void generateHeartbeat(HeartbeatCreateDTO dto) {
-        Optional<User> optUser = this.userRepository.findById(dto.getPacientId());
+        Optional<User> optUser = this.userRepository.findByCpf(dto.getCpf());
         if (optUser.isEmpty()) {
             throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
@@ -41,19 +41,18 @@ public class HeartbeatService {
 
         this.heartbeatRepository.save(heartbeat);
 
-        List<User> cpfUsersAssociateds = this.getCpfUsersAssociateds(dto.getPacientId());
-
-        List<HeartbeatDTO> dashPacient = this.dashboard(dto.getPacientId());
+        List<User> cpfUsersAssociateds = this.getCpfUsersAssociateds(dto.getCpf());
+        List<HeartbeatDTO> dashPacient = this.dashboard(dto.getCpf());
         this.messagingTemplate.convertAndSend("/topic/messages/" + dto.getCpf(), dashPacient);
 
         cpfUsersAssociateds.forEach(cpf -> {
-            List<HeartbeatDTO> dash = this.dashboard(cpf.getId());
-            this.messagingTemplate.convertAndSend("/topic/messages/" + cpf.getCpf(), dash);
+            List<HeartbeatDTO> dash = this.dashboard(cpf.getCpf());
+            this.messagingTemplate.convertAndSend("/topic/messages/" + cpf.getId(), dash);
         });
     }
 
-    public List<User> getCpfUsersAssociateds(Long userId) {
-        Optional<User> optUser = this.userRepository.findById(userId);
+    public List<User> getCpfUsersAssociateds(String userId) {
+        Optional<User> optUser = this.userRepository.findByCpf(userId);
         if (optUser.isEmpty()) {
             throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
@@ -61,8 +60,8 @@ public class HeartbeatService {
         return optUser.get().getAssociateds();
     }
 
-    public List<HeartbeatDTO> dashboard(Long userId) {
-        Optional<User> optUser = this.userRepository.findById(userId);
+    public List<HeartbeatDTO> dashboard(String userId) {
+        Optional<User> optUser = this.userRepository.findByCpf(userId);
         if (optUser.isEmpty()) {
             throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
         }
