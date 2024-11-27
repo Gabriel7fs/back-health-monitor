@@ -81,9 +81,9 @@ class HeartbeatServiceTest {
         verify(heartbeatRepository, times(1)).save(any(Heartbeat.class));
 
         verify(messagingTemplate, times(1))
-                .convertAndSend(eq("/topic/messages/12345678901"), eq(dashboardPacient));
+                .convertAndSend("/topic/messages/12345678901", dashboardPacient);
         verify(messagingTemplate, times(1))
-                .convertAndSend(eq("/topic/messages/2"), eq(dashboardAssociated));
+                .convertAndSend("/topic/messages/2", dashboardAssociated);
     }
 
     @Test

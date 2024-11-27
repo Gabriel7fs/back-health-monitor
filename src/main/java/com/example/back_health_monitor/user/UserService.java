@@ -125,7 +125,5 @@ public class UserService {
 
         User user = optUser.get();
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
-        user = this.repository.save(user);
     }
 }
