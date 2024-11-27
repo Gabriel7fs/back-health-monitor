@@ -59,6 +59,34 @@ class HeartbeatServiceTest {
     }
 
     @Test
+    void generateHeartbeat_ShouldSaveHeartbeatAndSendMessages_WhenAssociatedUsersExist() {
+        when(userRepository.findByCpf("12345678901")).thenReturn(Optional.of(testUser));
+
+        User associatedUser = new User();
+        associatedUser.setId(2L);
+        associatedUser.setUsername("associatedUser");
+        associatedUser.setCpf("98765432100");
+        testUser.setAssociateds(List.of(associatedUser));
+        when(userRepository.findByCpf("98765432100")).thenReturn(Optional.of(associatedUser));
+
+        heartbeatCreateDTO.setCpf("12345678901");
+
+        List<HeartbeatDTO> dashboardPacient = List.of(new HeartbeatDTO());
+        List<HeartbeatDTO> dashboardAssociated = List.of(new HeartbeatDTO());
+        doReturn(dashboardPacient).when(heartbeatService).dashboard("12345678901");
+        doReturn(dashboardAssociated).when(heartbeatService).dashboard("98765432100");
+
+        heartbeatService.generateHeartbeat(heartbeatCreateDTO);
+
+        verify(heartbeatRepository, times(1)).save(any(Heartbeat.class));
+
+        verify(messagingTemplate, times(1))
+                .convertAndSend(eq("/topic/messages/12345678901"), eq(dashboardPacient));
+        verify(messagingTemplate, times(1))
+                .convertAndSend(eq("/topic/messages/2"), eq(dashboardAssociated));
+    }
+
+    @Test
     void generateHeartbeat_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
         when(userRepository.findByCpf("1")).thenReturn(Optional.empty());
 
