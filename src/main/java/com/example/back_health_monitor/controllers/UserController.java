@@ -69,7 +69,7 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"Usuário não encontrado\" }")))
     })
     @GetMapping(path = "/dashboard", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<HeartbeatDTO> dashboard(@RequestParam("userId") Long userId) {
+    public List<HeartbeatDTO> dashboard(@RequestParam("userId") String userId) {
         return this.heartbeatService.dashboard(userId);
     }
 }
