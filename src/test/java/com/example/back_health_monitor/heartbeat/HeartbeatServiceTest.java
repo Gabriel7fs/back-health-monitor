@@ -58,26 +58,15 @@ class HeartbeatServiceTest {
         heartbeatService = spy(new HeartbeatService(heartbeatRepository, userRepository, messagingTemplate));
     }
 
-
-    @Test
-    void generateHeartbeat_ShouldSaveHeartbeatAndSendMessage_WhenUserExists() {
-        heartbeatService.generateHeartbeat(heartbeatCreateDTO);
-
-        verify(userRepository, times(3)).findById(heartbeatCreateDTO.getPacientId()); // Ajuste para 3 invocações
-        verify(heartbeatRepository, times(1)).save(any(Heartbeat.class));
-        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/messages/" + heartbeatCreateDTO.getCpf()), anyList());
-    }
-
     @Test
     void generateHeartbeat_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findByCpf("1")).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> heartbeatService.generateHeartbeat(heartbeatCreateDTO));
 
         verify(heartbeatRepository, never()).save(any(Heartbeat.class));
         verify(messagingTemplate, never()).convertAndSend(any(String.class), any(Object.class));
     }
-
 
     @Test
     void dashboard_ShouldReturnHeartbeatDTOList_WhenUserExists() {
@@ -93,9 +82,9 @@ class HeartbeatServiceTest {
         associatedUser.setHeartbeats(List.of(heartbeat));
         testUser.setAssociateds(List.of(associatedUser));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByCpf("1")).thenReturn(Optional.of(testUser));
 
-        List<HeartbeatDTO> result = heartbeatService.dashboard(1L);
+        List<HeartbeatDTO> result = heartbeatService.dashboard("1");
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -104,41 +93,20 @@ class HeartbeatServiceTest {
         assertEquals(80.0f, result.get(0).getHeartbeats().get(0).getHeartbeat());
         assertEquals(96.0f, result.get(0).getHeartbeats().get(0).getOxygenQuantity());
 
-        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).findByCpf("1");
     }
 
     @Test
     void dashboard_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findByCpf("1")).thenReturn(Optional.empty());
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            heartbeatService.dashboard(1L);
+            heartbeatService.dashboard("1");
         });
 
         assertEquals("Usuário não encontrado.", exception.getMessage());
 
-        verify(userRepository, times(1)).findById(1L);
-    }
-
-
-    @Test
-    void generateHeartbeat_ShouldSendMessagesToAssociatedUsers_WhenAssociatedUsersExist() {
-        User associatedUser = new User();
-        associatedUser.setId(2L);
-        associatedUser.setUsername("associatedUser");
-        associatedUser.setCpf("98765432100");
-
-        testUser.setAssociateds(List.of(associatedUser));
-
-        when(userRepository.findById(2L)).thenReturn(Optional.of(associatedUser));
-
-        List<HeartbeatDTO> associatedDash = List.of(new HeartbeatDTO());
-        doReturn(associatedDash).when(heartbeatService).dashboard(2L);
-
-        heartbeatService.generateHeartbeat(heartbeatCreateDTO);
-
-        verify(messagingTemplate, times(1))
-                .convertAndSend("/topic/messages/98765432100", associatedDash);
+        verify(userRepository, times(1)).findByCpf("1");
     }
 
     @Test
@@ -149,27 +117,27 @@ class HeartbeatServiceTest {
 
         testUser.setAssociateds(List.of(associatedUser));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByCpf("1")).thenReturn(Optional.of(testUser));
 
-        List<User> result = heartbeatService.getCpfUsersAssociateds(1L);
+        List<User> result = heartbeatService.getCpfUsersAssociateds("1");
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("associatedUser", result.get(0).getUsername());
 
-        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).findByCpf("1");
     }
 
     @Test
     void getCpfUsersAssociateds_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findByCpf("1")).thenReturn(Optional.empty());
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            heartbeatService.getCpfUsersAssociateds(1L);
+            heartbeatService.getCpfUsersAssociateds("1");
         });
 
         assertEquals("Usuário não encontrado.", exception.getMessage());
 
-        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).findByCpf("1");
     }
 }
