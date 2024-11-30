@@ -1,6 +1,7 @@
 package com.example.back_health_monitor.heartbeat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +43,11 @@ public class HeartbeatService {
         this.heartbeatRepository.save(heartbeat);
 
         List<User> cpfUsersAssociateds = this.getCpfUsersAssociateds(dto.getCpf());
-        List<HeartbeatDTO> dashPacient = this.dashboard(dto.getCpf());
-        this.messagingTemplate.convertAndSend("/topic/messages/" + dto.getCpf(), dashPacient);
+        List<HeartbeatDTO> dashPacient = new ArrayList<>();
+        dashPacient.add(
+                this.dashboardPacient(dto.getCpf())
+        );
+        this.messagingTemplate.convertAndSend("/topic/messages/" + optUser.get().getId(), dashPacient);
 
         cpfUsersAssociateds.forEach(cpf -> {
             List<HeartbeatDTO> dash = this.dashboard(cpf.getCpf());
@@ -87,5 +91,33 @@ public class HeartbeatService {
 
             return heartDTO;
         }).toList();
+    }
+
+    public HeartbeatDTO dashboardPacient(String userId) {
+        Optional<User> optUser = this.userRepository.findByCpf(userId);
+        if (optUser.isEmpty()) {
+            throw new UserNotFoundException(USER_NOT_FOUND_MESSAGE);
+        }
+
+        User userModel = optUser.get();
+
+
+            UserDTO user = new UserDTO();
+            user.setId(userModel.getId());
+            user.setName(userModel.getUsername());
+
+            List<HeartbeatInfoDTO> heartbeats = userModel.getHeartbeats().stream().map(heart -> {
+                HeartbeatInfoDTO dto = new HeartbeatInfoDTO();
+                dto.setHeartbeat(heart.getHeartbeat());
+                dto.setOxygenQuantity(heart.getOxygenQuantity());
+                dto.setDate(heart.getDate());
+
+                return dto;
+            }).toList();
+
+            HeartbeatDTO heartDTO = new HeartbeatDTO();
+            heartDTO.setUser(user);
+            heartDTO.setHeartbeats(heartbeats);
+            return heartDTO;
     }
 }

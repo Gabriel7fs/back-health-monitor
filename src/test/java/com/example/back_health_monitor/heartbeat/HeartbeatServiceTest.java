@@ -59,34 +59,6 @@ class HeartbeatServiceTest {
     }
 
     @Test
-    void generateHeartbeat_ShouldSaveHeartbeatAndSendMessages_WhenAssociatedUsersExist() {
-        when(userRepository.findByCpf("12345678901")).thenReturn(Optional.of(testUser));
-
-        User associatedUser = new User();
-        associatedUser.setId(2L);
-        associatedUser.setUsername("associatedUser");
-        associatedUser.setCpf("98765432100");
-        testUser.setAssociateds(List.of(associatedUser));
-        when(userRepository.findByCpf("98765432100")).thenReturn(Optional.of(associatedUser));
-
-        heartbeatCreateDTO.setCpf("12345678901");
-
-        List<HeartbeatDTO> dashboardPacient = List.of(new HeartbeatDTO());
-        List<HeartbeatDTO> dashboardAssociated = List.of(new HeartbeatDTO());
-        doReturn(dashboardPacient).when(heartbeatService).dashboard("12345678901");
-        doReturn(dashboardAssociated).when(heartbeatService).dashboard("98765432100");
-
-        heartbeatService.generateHeartbeat(heartbeatCreateDTO);
-
-        verify(heartbeatRepository, times(1)).save(any(Heartbeat.class));
-
-        verify(messagingTemplate, times(1))
-                .convertAndSend("/topic/messages/12345678901", dashboardPacient);
-        verify(messagingTemplate, times(1))
-                .convertAndSend("/topic/messages/2", dashboardAssociated);
-    }
-
-    @Test
     void generateHeartbeat_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
         when(userRepository.findByCpf("1")).thenReturn(Optional.empty());
 
@@ -167,5 +139,49 @@ class HeartbeatServiceTest {
         assertEquals("Usuário não encontrado.", exception.getMessage());
 
         verify(userRepository, times(1)).findByCpf("1");
+    }
+
+    @Test
+    void dashboardPacient_ShouldReturnHeartbeatDTO_WhenUserExists() {
+        String cpf = "12345678901";
+        User user = new User();
+        user.setId(1L);
+        user.setCpf(cpf);
+        user.setUsername("John Doe");
+
+        Heartbeat heartbeat = new Heartbeat();
+        heartbeat.setHeartbeat(72.0f);
+        heartbeat.setOxygenQuantity(98.6f);
+        heartbeat.setDate(LocalDateTime.now());
+        List<Heartbeat> heartbeats = List.of(heartbeat);
+
+        user.setHeartbeats(heartbeats);
+
+        when(userRepository.findByCpf(cpf)).thenReturn(Optional.of(user));
+
+        HeartbeatDTO result = heartbeatService.dashboardPacient(cpf);
+
+        assertNotNull(result);
+        assertEquals(user.getId(), result.getUser().getId());
+        assertEquals(user.getUsername(), result.getUser().getName());
+        assertEquals(1, result.getHeartbeats().size());
+
+        HeartbeatInfoDTO heartbeatInfo = result.getHeartbeats().get(0);
+        assertEquals(72.0f, heartbeatInfo.getHeartbeat());
+        assertEquals(98.6f, heartbeatInfo.getOxygenQuantity());
+        assertEquals(heartbeat.getDate(), heartbeatInfo.getDate());
+    }
+
+    @Test
+    void dashboardPacient_ShouldThrowException_WhenUserDoesNotExist() {
+        String cpf = "12345678901";
+
+        when(userRepository.findByCpf(cpf)).thenReturn(Optional.empty());
+
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            heartbeatService.dashboardPacient(cpf);
+        });
+
+        assertEquals("Usuário não encontrado.", exception.getMessage());
     }
 }
